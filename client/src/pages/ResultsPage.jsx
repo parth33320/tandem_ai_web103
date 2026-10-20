@@ -46,6 +46,7 @@ const ResultsPage = () => {
             className="similarity-meter"
             style={{
               width: `${(trueCount / totalQuestions) * 100}%`,
+              minWidth: '4px',
               backgroundColor: '#3498db',
               height: '100%',
               borderRadius: '12px',
