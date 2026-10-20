@@ -1,10 +1,13 @@
 // server/index.js - Express Server Entry Point
 import express from 'express';
 import cors from 'cors';
+import session from 'express-session';
 import dotenv from 'dotenv';
 import wordsRouter from './routes/words.js';
 import decksRouter from './routes/decks.js';
+import scoresRouter from './routes/scores.js';
 import resetRouter from './routes/reset.js';
+import authRouter from './routes/auth.js';
 
 dotenv.config();
 
@@ -14,9 +17,24 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Session middleware configuration
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'tandem_secret_key_123',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      secure: false, // set to true if using HTTPS in production
+    },
+  })
+);
+
 // Routes
 app.use('/api/words', wordsRouter);
 app.use('/api/decks', decksRouter);
+app.use('/api/scores', scoresRouter);
+app.use('/api', authRouter);
 app.use('/api', resetRouter);
 
 // Root route healthcheck

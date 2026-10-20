@@ -10,6 +10,7 @@ const TOTAL_QUESTIONS = 10;
 
 const PlayPage = () => {
   const navigate = useNavigate();
+  const [direction, setDirection] = useState('cn_to_jp');
   const [wordData, setWordData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,7 +43,7 @@ const PlayPage = () => {
     setSelectedOption(null);
     setShowRevealModal(false);
     try {
-      const data = await getRandomWord('cn_to_jp');
+      const data = await getRandomWord(direction);
       setWordData(data);
       startTimer(10);
     } catch (err) {
@@ -75,7 +76,7 @@ const PlayPage = () => {
   const handleNextQuestion = () => {
     setShowRevealModal(false);
     if (roundWords.length >= TOTAL_QUESTIONS) {
-      navigate('/results', { state: { roundWords, score } });
+      navigate('/results', { state: { roundWords, score, direction } });
     } else {
       loadRandomWord();
     }
