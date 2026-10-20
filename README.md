@@ -4,7 +4,7 @@ CodePath WEB103 Final Project
 
 Designed and developed by: Parth Patel, Robert Cunningham, Tasneem Shabana, Hunter Smith, George Liu
 
-🔗 Link to deployed app:
+🔗 Link to deployed app: [https://tandem-server.onrender.com](https://tandem-server.onrender.com)
 
 ## About
 
@@ -24,7 +24,7 @@ Backend: Express, Node.js, PostgreSQL
 
 ## Features
 
-### Timed Game Loop Mode
+### ✅ Timed Game Loop Mode
 
 A quiz game mode where players choose a game direction, view a word, and pick the correct English meaning within a strict 8 to 10 second timer.
 
@@ -41,9 +41,9 @@ A quiz game mode where players choose a game direction, view a word, and pick th
     *   *Step 4 (Output):* The system does not stop the timer, does not record the choice, and the timer counts down to 0, causing a false game-over screen.
     *   *Explanation:* The system failing to stop the timer at second 4 and forcing a false game-over screen despite the user clicking "Letter" demonstrates a broken game state where player input is completely ignored.
 
-[gif goes here]
+[GIF placeholder — record after deploy]
 
-### Dynamic Word Reveal Cards
+### ✅ Dynamic Word Reveal Cards
 
 A card component that displays after each answer to show the word spelling, the word reading, the word meaning, and the word relationship tag side by side for both languages.
 
@@ -60,9 +60,9 @@ A card component that displays after each answer to show the word spelling, the 
     *   *Step 4 (Output):* The card component leaves the relationship tag space blank because it failed to fetch the relationship metadata from the database table.
     *   *Explanation:* The component failing to display the relationship tag for "手紙" and leaving the space blank demonstrates a database communication failure where crucial data is missing from the screen.
 
-[gif goes here]
+[GIF placeholder — record after deploy]
 
-### Final Similarity Meter Dashboard
+### ✅ Final Similarity Meter Dashboard
 
 A screen at the end of a round that calculates and displays the exact percentage of words seen during the round that share the same meaning in both languages.
 
@@ -79,9 +79,9 @@ A screen at the end of a round that calculates and displays the exact percentage
     *   *Step 4 (Output):* The system renders a progress bar displaying an error message or "0% Similarity Meter" instead of the real calculation.
     *   *Explanation:* The system failing to count the true friends and outputting an error or a broken "0% Similarity Meter" illustrates a dashboard calculation failure that deprives the player of their round summaries.
 
-[gif goes here]
+[GIF placeholder — record after deploy]
 
-### Personal Missed Words History
+### ✅ Personal Missed Words History
 
 A feature that tracks user answers in a database table to show a list of specific words that the user keeps missing.
 
@@ -98,9 +98,9 @@ A feature that tracks user answers in a database table to show a list of specifi
     *   *Step 4 (Output):* The system displays a generic welcome message and an empty list because it failed to pull the personal history from the database table.
     *   *Explanation:* The profile page failing to run the database check and showing an empty list component instead of displaying "**勉強**" highlights a tracking failure where a user's personal mistake history is lost.
 
-[gif goes here]
+[GIF placeholder — record after deploy]
 
-### Custom Deck Creator (CRUD)
+### ✅ Custom Deck Creator (CRUD)
 
 A tool that lets logged-in users create new custom word decks, view existing word decks, update word definitions, and delete incorrect words from the database table.
 
@@ -117,9 +117,9 @@ A tool that lets logged-in users create new custom word decks, view existing wor
     *   *Step 4 (Output):* The user refreshes the browser page, causing the new card to disappear completely because the row was never saved in the database table.
     *   *Explanation:* The system failing to send the database request, causing the card "My Difficult Kanji" to completely disappear when the browser is refreshed, points to a lack of persistence where information is not saved.
 
-[gif goes here]
+[GIF placeholder — record after deploy]
 
-### Split Direction Leaderboards
+### ✅ Split Direction Leaderboards
 
 A data table that ranks user high scores separately based on the chosen game direction, showing if Chinese speakers guess Japanese words better than Japanese speakers guess Chinese words.
 
@@ -138,8 +138,12 @@ A data table that ranks user high scores separately based on the chosen game dir
     *   *Step 5 (Output):* The component breaks, does nothing, and continues showing the Chinese tracker scores regardless of the user clicking the switch.
     *   *Explanation:* The component freezing and failing to change data when the player clicks "Switch to Japanese → Guess Chinese", leaving the old table frozen on screen, shows a failure in separating or rendering the alternate direction rankings.
 
-[gif goes here]
+[GIF placeholder — record after deploy]
 
 ## Installation Instructions
 
-[instructions go here]
+1. Clone the repository: `git clone https://github.com/your-org/tandem.git`
+2. Install dependencies: `npm install`
+3. Set up PostgreSQL database environment variables or `DATABASE_URL`.
+4. Reset and seed database: `npm run db:reset`
+5. Run dev server: `npm run dev:server` and client: `npm run dev:client`
