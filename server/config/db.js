@@ -6,12 +6,17 @@ dotenv.config();
 
 const { Pool } = pg;
 
-export const pool = new Pool({
-  host: process.env.PGHOST || 'localhost',
-  user: process.env.PGUSER || 'postgres',
-  password: process.env.PGPASSWORD || 'postgres',
-  database: process.env.PGDATABASE || 'tandem',
-  port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432,
-});
+export const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    })
+  : new Pool({
+      host: process.env.PGHOST || 'localhost',
+      user: process.env.PGUSER || 'postgres',
+      password: process.env.PGPASSWORD || 'postgres',
+      database: process.env.PGDATABASE || 'tandem',
+      port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432,
+    });
 
 export default pool;
