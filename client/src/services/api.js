@@ -127,6 +127,66 @@ export const removeWordFromDeck = async (deckId, wordId) => {
   return response.json();
 };
 
+// Auth API
+export const getCurrentUser = async () => {
+  const response = await fetch(`${API_BASE}/me`);
+  if (!response.ok) {
+    return null;
+  }
+  const data = await response.json();
+  return data.user || null;
+};
+
+export const mockLogin = async (userData = {}) => {
+  const response = await fetch(`${API_BASE}/auth/mock-login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(userData),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const err = new Error(data.error || 'Failed to log in');
+    err.status = response.status;
+    throw err;
+  }
+  return data.user;
+};
+
+// Scores & Leaderboard API
+export const saveScore = async ({ direction, score, similarity_pct }) => {
+  const response = await fetch(`${API_BASE}/scores`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ direction, score, similarity_pct }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const err = new Error(data.error || 'Failed to save score');
+    err.status = response.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+};
+
+export const getLeaderboard = async (direction = 'cn_to_jp', limit = 10) => {
+  const response = await fetch(`${API_BASE}/scores/leaderboard?direction=${direction}&limit=${limit}`);
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to fetch leaderboard: ${response.statusText}`);
+  }
+  return response.json();
+};
+
+export const getAllScores = async () => {
+  const response = await fetch(`${API_BASE}/scores`);
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to fetch scores: ${response.statusText}`);
+  }
+  return response.json();
+};
+
 export default {
   getRandomWord,
   getAllWords,
@@ -139,4 +199,9 @@ export default {
   deleteDeck,
   addWordToDeck,
   removeWordFromDeck,
+  getCurrentUser,
+  mockLogin,
+  saveScore,
+  getLeaderboard,
+  getAllScores,
 };

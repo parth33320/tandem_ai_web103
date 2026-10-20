@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getCurrentUser, saveScore } from '../services/api';
 
 const ResultsPage = () => {
   const location = useLocation();
@@ -7,14 +8,74 @@ const ResultsPage = () => {
   const state = location.state || {};
   const roundWords = state.roundWords || [];
   const score = state.score !== undefined ? state.score : 0;
+  const direction = state.direction || 'cn_to_jp';
+
+  const [toastMessage, setToastMessage] = useState(null);
+  const [toastType, setToastType] = useState('success');
 
   const totalQuestions = 10;
   const trueCount = roundWords.filter(w => w.relationship_tag === 'true_friend').length;
   const similarityPct = Math.round((trueCount / totalQuestions) * 100);
   const scorePct = Math.round((score / totalQuestions) * 100);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const handleRoundCompletion = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          // User is authenticated - save score to leaderboard
+          await saveScore({
+            direction,
+            score: scorePct,
+            similarity_pct: similarityPct
+          });
+          if (isMounted) {
+            setToastMessage('Score saved to leaderboard!');
+            setToastType('success');
+          }
+        } else {
+          // Guest user - increment guest rounds count
+          const currentRounds = parseInt(localStorage.getItem('tandem_guest_rounds') || '0', 10);
+          localStorage.setItem('tandem_guest_rounds', (isNaN(currentRounds) ? 0 : currentRounds) + 1);
+        }
+      } catch (err) {
+        console.error('Error handling round score:', err);
+        if (isMounted) {
+          setToastMessage('Failed to save score to leaderboard.');
+          setToastType('error');
+        }
+      }
+    };
+
+    handleRoundCompletion();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [direction, scorePct, similarityPct]);
+
   return (
     <div className="results-page" style={{ padding: '2rem', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
+      {toastMessage && (
+        <div
+          className={`toast-notification ${toastType}`}
+          style={{
+            padding: '1rem',
+            marginBottom: '1.5rem',
+            borderRadius: '6px',
+            backgroundColor: toastType === 'success' ? '#d4edda' : '#f8d7da',
+            color: toastType === 'success' ? '#155724' : '#721c24',
+            border: `1px solid ${toastType === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+            fontWeight: 'bold',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
+
       <h1 style={{ color: '#2c3e50', marginBottom: '1.5rem' }}>Round Complete!</h1>
 
       <div style={{
