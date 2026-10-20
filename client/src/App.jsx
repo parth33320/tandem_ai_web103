@@ -5,6 +5,7 @@ import PlayPage from './pages/PlayPage';
 import ResultsPage from './pages/ResultsPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import DecksPage from './pages/DecksPage';
+import DeckDetailPage from './pages/DeckDetailPage';
 import ProfilePage from './pages/ProfilePage';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
           <Route path="/results" element={<ResultsPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/decks" element={<DecksPage />} />
+          <Route path="/decks/:id" element={<DeckDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </main>
