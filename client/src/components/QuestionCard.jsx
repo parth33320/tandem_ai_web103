@@ -1,6 +1,6 @@
 import React from 'react';
 
-const QuestionCard = ({ wordData, onOptionSelect, selectedOption }) => {
+const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft }) => {
   if (!wordData) return null;
 
   const { characters, options, correct_answer, chinese_reading, japanese_reading } = wordData;
@@ -16,6 +16,20 @@ const QuestionCard = ({ wordData, onOptionSelect, selectedOption }) => {
       textAlign: 'center',
       backgroundColor: '#fff'
     }}>
+      {timeLeft !== undefined && (
+        <div
+          className="timer"
+          style={{
+            fontSize: '1.25rem',
+            fontWeight: 'bold',
+            color: timeLeft <= 3 ? '#e74c3c' : '#2c3e50',
+            marginBottom: '1rem'
+          }}
+        >
+          Time Left: {timeLeft}s
+        </div>
+      )}
+
       <h1 className="word-characters" style={{ fontSize: '3rem', margin: '0.5rem 0' }}>
         {characters}
       </h1>

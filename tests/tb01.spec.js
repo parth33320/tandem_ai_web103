@@ -28,8 +28,8 @@ test.describe('Tracer Bullet Slice TB-01 E2E Tests', () => {
     await wrongButton.click();
     await expect(wrongButton).toHaveClass(/wrong/);
 
-    // 2. Click "Next Question" to load another word
-    await page.getByRole('button', { name: 'Next Question', exact: true }).click();
+    // 2. Click "Next" button in RevealCard modal to load another word
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
     await expect(page.locator('.question-card')).toBeVisible();
 
     // 3. Click correct answer and verify .correct class
