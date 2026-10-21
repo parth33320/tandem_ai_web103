@@ -13,6 +13,8 @@ import scoresRouter from './routes/scores.js';
 import missedWordsRouter from './routes/missedWords.js';
 import resetRouter from './routes/reset.js';
 import authRouter from './routes/auth.js';
+import roomsRouter from './routes/rooms.js';
+import aiRouter from './routes/ai.js';
 
 dotenv.config();
 
@@ -51,6 +53,8 @@ app.use('/api/words', wordsRouter);
 app.use('/api/decks', decksRouter);
 app.use('/api/scores', scoresRouter);
 app.use('/api/missed-words', missedWordsRouter);
+app.use('/api/rooms', roomsRouter);
+app.use('/api/rooms', aiRouter);
 app.use('/', authRouter);
 app.use('/api', resetRouter);
 

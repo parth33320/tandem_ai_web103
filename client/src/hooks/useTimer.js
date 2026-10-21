@@ -56,6 +56,7 @@ export function useTimer(initialSeconds = 10, onTimeout) {
 
   return {
     timeLeft,
+    setTimeLeft,
     isRunning,
     startTimer,
     stopTimer,

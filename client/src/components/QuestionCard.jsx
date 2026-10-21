@@ -1,7 +1,7 @@
 // Presenter Component
 import React from 'react';
 
-const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft }) => {
+const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft, shuffleOrders }) => {
   if (!wordData) return null;
 
   const { characters, options, correct_answer, chinese_reading, japanese_reading } = wordData;
@@ -19,7 +19,7 @@ const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft }) =>
     }}>
       {timeLeft !== undefined && (
         <div
-          className="timer"
+          className="timer timer-bar"
           style={{
             fontSize: '1.25rem',
             fontWeight: 'bold',
@@ -41,10 +41,10 @@ const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft }) =>
         Choose the correct meaning:
       </p>
 
-      <div className="options-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+      <div className="options-grid choice-buttons" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         {options.map((option, idx) => {
           const isCorrectOption = option === correct_answer;
-          let btnClass = 'option-button';
+          let btnClass = 'option-button choice-btn';
           let style = {
             padding: '1rem',
             fontSize: '1rem',
@@ -52,7 +52,8 @@ const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft }) =>
             border: '2px solid #3498db',
             cursor: 'pointer',
             backgroundColor: '#f8f9fa',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            order: shuffleOrders && shuffleOrders[idx] !== undefined ? shuffleOrders[idx] : idx
           };
 
           if (selectedOption) {
@@ -84,7 +85,7 @@ const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft }) =>
               onClick={() => !selectedOption && onOptionSelect(option)}
               disabled={!!selectedOption}
             >
-              {option}
+              <span className="choice-text">{option}</span>
             </button>
           );
         })}

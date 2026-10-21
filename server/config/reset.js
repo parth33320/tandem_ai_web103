@@ -8,6 +8,11 @@ export const resetDatabase = async () => {
 
     // Drop tables in reverse dependency order
     await client.query(`
+      DROP TABLE IF EXISTS weapon_events CASCADE;
+      DROP TABLE IF EXISTS inventory CASCADE;
+      DROP TABLE IF EXISTS messages CASCADE;
+      DROP TABLE IF EXISTS room_players CASCADE;
+      DROP TABLE IF EXISTS rooms CASCADE;
       DROP TABLE IF EXISTS scores CASCADE;
       DROP TABLE IF EXISTS missed_words CASCADE;
       DROP TABLE IF EXISTS deck_words CASCADE;
@@ -17,7 +22,7 @@ export const resetDatabase = async () => {
       DROP TABLE IF EXISTS users CASCADE;
     `);
 
-    // Create 7 tables with exact constraints
+    // Create tables with exact constraints
     await client.query(`
       CREATE TABLE users (
         id SERIAL PRIMARY KEY,
@@ -77,10 +82,55 @@ export const resetDatabase = async () => {
         similarity_pct INTEGER NOT NULL,
         played_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE rooms (
+        id SERIAL PRIMARY KEY,
+        code VARCHAR(10) UNIQUE NOT NULL,
+        host_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        status VARCHAR(20) DEFAULT 'waiting',
+        current_question_index INTEGER DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE room_players (
+        id SERIAL PRIMARY KEY,
+        room_id INTEGER REFERENCES rooms(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        score INTEGER DEFAULT 0,
+        joined_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(room_id, user_id)
+      );
+
+      CREATE TABLE messages (
+        id SERIAL PRIMARY KEY,
+        room_id INTEGER REFERENCES rooms(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        text TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE inventory (
+        id            SERIAL PRIMARY KEY,
+        room_id       INTEGER REFERENCES rooms(id) ON DELETE CASCADE,
+        user_id       INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        offensive_slot VARCHAR(40),
+        passive_slot   VARCHAR(40),
+        updated_at    TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(room_id, user_id)
+      );
+
+      CREATE TABLE weapon_events (
+        id           SERIAL PRIMARY KEY,
+        room_id      INTEGER REFERENCES rooms(id) ON DELETE CASCADE,
+        attacker_id  INTEGER REFERENCES users(id),
+        target_id    INTEGER REFERENCES users(id),
+        weapon_type  VARCHAR(40) NOT NULL,
+        expires_at   TIMESTAMPTZ NOT NULL,
+        created_at   TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
 
     // Seed words with exactly 10 rows of real CN/JP shared-character pairs
-    // Row 1 MUST be 手紙 (false friend: Letter vs Toilet paper)
     const wordsData = [
       ['手紙', 'shǒuzhǐ', 'tegami', 'Toilet paper', 'Letter', 'false_friend'],
       ['勉強', 'miǎnqiǎng', 'benkyō', 'Forced / reluctance', 'Study', 'false_friend'],
