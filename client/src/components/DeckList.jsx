@@ -1,3 +1,4 @@
+// Presenter Component
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -5,6 +6,8 @@ const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle }) => {
   const [editingDeckId, setEditingDeckId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editError, setEditError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingDeckId, setDeletingDeckId] = useState(null);
 
   const handleStartEdit = (deck) => {
     setEditingDeckId(deck.id);
@@ -15,10 +18,22 @@ const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle }) => {
   const handleSaveEdit = async (deckId) => {
     try {
       setEditError('');
+      setIsSubmitting(true);
       await onUpdateDeckTitle(deckId, editTitle);
       setEditingDeckId(null);
     } catch (err) {
       setEditError(err.message || 'Failed to update title');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (deckId) => {
+    try {
+      setDeletingDeckId(deckId);
+      await onDeleteDeck(deckId);
+    } finally {
+      setDeletingDeckId(null);
     }
   };
 
@@ -77,15 +92,17 @@ const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle }) => {
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
                   onClick={() => handleSaveEdit(deck.id)}
+                  disabled={isSubmitting}
                   className="save-title-btn"
-                  style={{ padding: '0.3rem 0.6rem', backgroundColor: '#2ecc71', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  style={{ padding: '0.3rem 0.6rem', backgroundColor: isSubmitting ? '#a5d6a7' : '#2ecc71', color: '#fff', border: 'none', borderRadius: '4px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
                 >
-                  Save
+                  {isSubmitting ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   onClick={handleCancelEdit}
+                  disabled={isSubmitting}
                   className="cancel-title-btn"
-                  style={{ padding: '0.3rem 0.6rem', backgroundColor: '#95a5a6', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  style={{ padding: '0.3rem 0.6rem', backgroundColor: '#95a5a6', color: '#fff', border: 'none', borderRadius: '4px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
                 >
                   Cancel
                 </button>
@@ -122,6 +139,7 @@ const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle }) => {
               </Link>
               <button
                 onClick={() => handleStartEdit(deck)}
+                disabled={deletingDeckId === deck.id}
                 className="edit-deck-btn"
                 style={{
                   padding: '0.4rem 0.8rem',
@@ -129,26 +147,27 @@ const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle }) => {
                   color: '#fff',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: 'pointer',
+                  cursor: deletingDeckId === deck.id ? 'not-allowed' : 'pointer',
                   fontSize: '0.9rem'
                 }}
               >
                 Rename
               </button>
               <button
-                onClick={() => onDeleteDeck(deck.id)}
+                onClick={() => handleDelete(deck.id)}
+                disabled={deletingDeckId === deck.id}
                 className="delete-deck-btn"
                 style={{
                   padding: '0.4rem 0.8rem',
-                  backgroundColor: '#e74c3c',
+                  backgroundColor: deletingDeckId === deck.id ? '#f5b7b1' : '#e74c3c',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: 'pointer',
+                  cursor: deletingDeckId === deck.id ? 'not-allowed' : 'pointer',
                   fontSize: '0.9rem'
                 }}
               >
-                Delete
+                {deletingDeckId === deck.id ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           )}

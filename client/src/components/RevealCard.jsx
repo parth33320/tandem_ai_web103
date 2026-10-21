@@ -1,4 +1,5 @@
-import React from 'react';
+// Presenter Component
+import React, { useState } from 'react';
 
 const RelationshipBadge = ({ tag }) => {
   let label = '';
@@ -37,9 +38,16 @@ const RelationshipBadge = ({ tag }) => {
 };
 
 const RevealCard = ({ wordData, isOpen, onNext }) => {
+  const [clicked, setClicked] = useState(false);
+
   if (!isOpen || !wordData) return null;
 
   const { characters, chinese_reading, japanese_reading, chinese_meaning, japanese_meaning, relationship_tag } = wordData;
+
+  const handleNextClick = () => {
+    setClicked(true);
+    onNext();
+  };
 
   return (
     <div
@@ -107,20 +115,21 @@ const RevealCard = ({ wordData, isOpen, onNext }) => {
 
         <button
           className="next-button"
-          onClick={onNext}
+          onClick={handleNextClick}
+          disabled={clicked}
           style={{
             marginTop: '1.5rem',
             padding: '0.75rem 2rem',
             fontSize: '1rem',
             fontWeight: 'bold',
-            backgroundColor: '#0d6efd',
+            backgroundColor: clicked ? '#6c757d' : '#0d6efd',
             color: '#fff',
             border: 'none',
             borderRadius: '6px',
-            cursor: 'pointer'
+            cursor: clicked ? 'not-allowed' : 'pointer'
           }}
         >
-          Next
+          {clicked ? 'Loading...' : 'Next'}
         </button>
       </div>
     </div>

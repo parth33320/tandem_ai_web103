@@ -1,6 +1,6 @@
 // client/src/services/api.js - Centralized API service for client-server communication
 
-const API_BASE = '/api';
+const API_BASE = `${import.meta.env.VITE_API_URL || ''}/api`;
 
 export const getRandomWord = async (direction = 'cn_to_jp') => {
   const response = await fetch(`${API_BASE}/words/random?direction=${direction}`);
