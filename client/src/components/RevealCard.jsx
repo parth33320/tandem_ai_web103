@@ -1,5 +1,6 @@
 // Presenter Component
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { addMissedWord, getCurrentUser } from '../services/api';
 
 const RelationshipBadge = ({ tag }) => {
   let label = '';
@@ -37,8 +38,34 @@ const RelationshipBadge = ({ tag }) => {
   );
 };
 
-const RevealCard = ({ wordData, isOpen, onNext }) => {
+const RevealCard = ({ wordData, isOpen, onNext, isWrong, user }) => {
   const [clicked, setClicked] = useState(false);
+  const reportedRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setClicked(false);
+      reportedRef.current = false;
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleMissedWord = async () => {
+      if (isOpen && wordData && isWrong && !reportedRef.current) {
+        reportedRef.current = true;
+        try {
+          const currentUser = user || (await getCurrentUser());
+          if (currentUser) {
+            await addMissedWord(wordData.id);
+          }
+        } catch (err) {
+          console.error('Failed to post missed word:', err);
+        }
+      }
+    };
+
+    handleMissedWord();
+  }, [isOpen, wordData, isWrong, user]);
 
   if (!isOpen || !wordData) return null;
 
