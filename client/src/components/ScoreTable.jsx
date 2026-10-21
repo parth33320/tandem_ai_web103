@@ -1,3 +1,4 @@
+// Presenter Component
 import React from 'react';
 
 const ScoreTable = ({ scores = [], loading = false }) => {

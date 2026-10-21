@@ -42,6 +42,11 @@ app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'Tandem API Server Running' });
 });
 
+// 404 handler for undefined API routes
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Not found', code: 'NOT_FOUND' });
+});
+
 // Global Express error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled Server Error:', err);

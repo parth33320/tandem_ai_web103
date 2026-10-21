@@ -1,11 +1,18 @@
+// Presenter Component
 import React, { useState } from 'react';
 
 const DeckForm = ({ onSubmit, errorText, buttonText = 'Create Deck', initialTitle = '' }) => {
   const [title, setTitle] = useState(initialTitle);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(title);
+    try {
+      setIsSubmitting(true);
+      await onSubmit(title);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -27,18 +34,19 @@ const DeckForm = ({ onSubmit, errorText, buttonText = 'Create Deck', initialTitl
         />
         <button
           type="submit"
+          disabled={isSubmitting}
           className="deck-submit-btn"
           style={{
             padding: '0.5rem 1rem',
             fontSize: '1rem',
-            backgroundColor: '#3498db',
+            backgroundColor: isSubmitting ? '#aed6f1' : '#3498db',
             color: '#fff',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer'
+            cursor: isSubmitting ? 'not-allowed' : 'pointer'
           }}
         >
-          {buttonText}
+          {isSubmitting ? 'Submitting...' : buttonText}
         </button>
       </div>
       {errorText && (

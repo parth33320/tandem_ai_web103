@@ -1,3 +1,4 @@
+// Container Component
 import React, { useState, useEffect } from 'react';
 import { getLeaderboard } from '../services/api';
 import ScoreTable from '../components/ScoreTable';
