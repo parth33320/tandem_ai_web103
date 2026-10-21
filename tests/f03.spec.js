@@ -4,6 +4,8 @@ test.describe('Feature Slice F-03 Custom Deck Creator E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Reset database for deterministic state
     await page.request.get('/api/reset');
+    // Authenticate test session so protected deck routes succeed
+    await page.request.post('/auth/mock-login');
   });
 
   test('POST deck with empty title -> assert 400 and error text visible in UI', async ({ page }) => {

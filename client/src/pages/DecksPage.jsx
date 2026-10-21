@@ -1,6 +1,7 @@
 // Container Component
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import DeckList from '../components/DeckList';
 import DeckForm from '../components/DeckForm';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -13,7 +14,7 @@ import {
   addWordToDeck
 } from '../services/api';
 
-const DecksPage = () => {
+const DecksPage = ({ user }) => {
   const [decks, setDecks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formError, setFormError] = useState('');
@@ -60,13 +61,24 @@ const DecksPage = () => {
   }, []);
 
   const handleCreateDeck = async (title) => {
+    if (!user) {
+      toast.error('Login required');
+      setFormError('Login required to create decks.');
+      return;
+    }
+
     try {
       setFormError('');
       const newDeck = await createDeck(title);
-      // Creating a deck auto-redirects to /decks/:id (dynamic route)
+      toast.success('Deck created successfully');
       navigate(`/decks/${newDeck.id}`);
     } catch (err) {
       console.error('Error creating deck:', err);
+      if (err.status === 401) {
+        toast.error('Login required');
+      } else {
+        toast.error(err.message || 'Failed to create deck');
+      }
       setFormError(err.message || 'Failed to create deck');
     }
   };
@@ -78,7 +90,7 @@ const DecksPage = () => {
       setDecks((prev) => prev.filter((d) => d.id !== deckId));
     } catch (err) {
       console.error('Error deleting deck:', err);
-      setPageError(err.message || 'Failed to delete deck');
+      throw err;
     }
   };
 
@@ -129,6 +141,7 @@ const DecksPage = () => {
         decks={decks}
         onDeleteDeck={handleDeleteDeck}
         onUpdateDeckTitle={handleUpdateDeckTitle}
+        user={user}
       />
     </div>
   );

@@ -9,7 +9,7 @@ import { useTimer } from '../hooks/useTimer';
 
 const TOTAL_QUESTIONS = 10;
 
-const PlayPage = () => {
+const PlayPage = ({ user }) => {
   const navigate = useNavigate();
   const [direction, setDirection] = useState('cn_to_jp');
   const [wordData, setWordData] = useState(null);
@@ -83,6 +83,8 @@ const PlayPage = () => {
     }
   };
 
+  const isWrong = showRevealModal && wordData && (selectedOption === null || selectedOption !== wordData.correct_answer);
+
   return (
     <div className="play-page" style={{ padding: '2rem', textAlign: 'center' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '500px', margin: '0 auto' }}>
@@ -126,6 +128,8 @@ const PlayPage = () => {
             wordData={wordData}
             isOpen={showRevealModal}
             onNext={handleNextQuestion}
+            isWrong={isWrong}
+            user={user}
           />
         </>
       )}

@@ -1,9 +1,10 @@
 // Container Component
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { getCurrentUser, saveScore } from '../services/api';
 
-const ResultsPage = () => {
+const ResultsPage = ({ user: initialUser }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state || {};
@@ -11,8 +12,8 @@ const ResultsPage = () => {
   const score = state.score !== undefined ? state.score : 0;
   const direction = state.direction || 'cn_to_jp';
 
-  const [toastMessage, setToastMessage] = useState(null);
-  const [toastType, setToastType] = useState('success');
+  const [savingScore, setSavingScore] = useState(false);
+  const [scoreSaved, setScoreSaved] = useState(false);
 
   const totalQuestions = 10;
   const trueCount = roundWords.filter(w => w.relationship_tag === 'true_friend').length;
@@ -24,8 +25,9 @@ const ResultsPage = () => {
 
     const handleRoundCompletion = async () => {
       try {
-        const user = await getCurrentUser();
-        if (user) {
+        setSavingScore(true);
+        const currentUser = initialUser || (await getCurrentUser());
+        if (currentUser) {
           // User is authenticated - save score to leaderboard
           await saveScore({
             direction,
@@ -33,8 +35,8 @@ const ResultsPage = () => {
             similarity_pct: similarityPct
           });
           if (isMounted) {
-            setToastMessage('Score saved to leaderboard!');
-            setToastType('success');
+            setScoreSaved(true);
+            toast.success('Score saved!');
           }
         } else {
           // Guest user - increment guest rounds count
@@ -44,8 +46,11 @@ const ResultsPage = () => {
       } catch (err) {
         console.error('Error handling round score:', err);
         if (isMounted) {
-          setToastMessage('Failed to save score to leaderboard.');
-          setToastType('error');
+          toast.error('Failed to save score.');
+        }
+      } finally {
+        if (isMounted) {
+          setSavingScore(false);
         }
       }
     };
@@ -55,28 +60,10 @@ const ResultsPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [direction, scorePct, similarityPct]);
+  }, [direction, scorePct, similarityPct, initialUser]);
 
   return (
     <div className="results-page" style={{ padding: '2rem', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
-      {toastMessage && (
-        <div
-          className={`toast-notification ${toastType}`}
-          style={{
-            padding: '1rem',
-            marginBottom: '1.5rem',
-            borderRadius: '6px',
-            backgroundColor: toastType === 'success' ? '#d4edda' : '#f8d7da',
-            color: toastType === 'success' ? '#155724' : '#721c24',
-            border: `1px solid ${toastType === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
-            fontWeight: 'bold',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}
-        >
-          {toastMessage}
-        </div>
-      )}
-
       <h1 style={{ color: '#2c3e50', marginBottom: '1.5rem' }}>Round Complete!</h1>
 
       <div style={{
@@ -121,18 +108,19 @@ const ResultsPage = () => {
       <button
         className="play-again-button"
         onClick={() => navigate('/play')}
+        disabled={savingScore}
         style={{
           padding: '0.75rem 2rem',
           fontSize: '1.1rem',
           fontWeight: 'bold',
-          backgroundColor: '#28a745',
+          backgroundColor: savingScore ? '#82e0aa' : '#28a745',
           color: '#fff',
           border: 'none',
           borderRadius: '6px',
-          cursor: 'pointer'
+          cursor: savingScore ? 'not-allowed' : 'pointer'
         }}
       >
-        Play Again
+        {savingScore ? 'Saving score...' : 'Play Again'}
       </button>
     </div>
   );

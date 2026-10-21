@@ -1,8 +1,9 @@
 // Presenter Component
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
-const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle }) => {
+const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle, user }) => {
   const [editingDeckId, setEditingDeckId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editError, setEditError] = useState('');
@@ -10,18 +11,32 @@ const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle }) => {
   const [deletingDeckId, setDeletingDeckId] = useState(null);
 
   const handleStartEdit = (deck) => {
+    if (!user) {
+      toast.error('Login required');
+      return;
+    }
     setEditingDeckId(deck.id);
     setEditTitle(deck.title);
     setEditError('');
   };
 
   const handleSaveEdit = async (deckId) => {
+    if (!user) {
+      toast.error('Login required');
+      return;
+    }
     try {
       setEditError('');
       setIsSubmitting(true);
       await onUpdateDeckTitle(deckId, editTitle);
+      toast.success('Deck update saved');
       setEditingDeckId(null);
     } catch (err) {
+      if (err.status === 401) {
+        toast.error('Login required');
+      } else {
+        toast.error(err.message || 'Failed to update title');
+      }
       setEditError(err.message || 'Failed to update title');
     } finally {
       setIsSubmitting(false);
@@ -29,9 +44,20 @@ const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle }) => {
   };
 
   const handleDelete = async (deckId) => {
+    if (!user) {
+      toast.error('Login required');
+      return;
+    }
     try {
       setDeletingDeckId(deckId);
       await onDeleteDeck(deckId);
+      toast.success('Deck deleted');
+    } catch (err) {
+      if (err.status === 401) {
+        toast.error('Login required');
+      } else {
+        toast.error(err.message || 'Failed to delete deck');
+      }
     } finally {
       setDeletingDeckId(null);
     }
@@ -75,6 +101,7 @@ const DeckList = ({ decks, onDeleteDeck, onUpdateDeckTitle }) => {
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 className="edit-deck-title-input"
+                disabled={isSubmitting}
                 style={{
                   width: '100%',
                   padding: '0.4rem',

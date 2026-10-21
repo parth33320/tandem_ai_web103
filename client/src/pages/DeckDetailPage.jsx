@@ -1,16 +1,19 @@
 // Container Component
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { getDeckById, getAllWords, addWordToDeck, removeWordFromDeck } from '../services/api';
 
-const DeckDetailPage = () => {
+const DeckDetailPage = ({ user }) => {
   const { id } = useParams();
   const [deck, setDeck] = useState(null);
   const [allWords, setAllWords] = useState([]);
   const [selectedWordId, setSelectedWordId] = useState('');
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState('');
+  const [addingWord, setAddingWord] = useState(false);
+  const [removingWordId, setRemovingWordId] = useState(null);
 
   const loadData = async () => {
     try {
@@ -38,29 +41,59 @@ const DeckDetailPage = () => {
     e.preventDefault();
     if (!selectedWordId) return;
 
+    if (!user) {
+      toast.error('Login required');
+      setErrorText('Login required');
+      return;
+    }
+
     try {
+      setAddingWord(true);
       setErrorText('');
       await addWordToDeck(id, parseInt(selectedWordId, 10), deck.words ? deck.words.length : 0);
+      toast.success('Word added to deck');
       setSelectedWordId('');
       const updatedDeck = await getDeckById(id);
       setDeck(updatedDeck);
     } catch (err) {
       console.error('Error adding word to deck:', err);
+      if (err.status === 401) {
+        toast.error('Login required');
+      } else {
+        toast.error(err.message || 'Failed to add word to deck');
+      }
       setErrorText(err.message || 'Failed to add word to deck');
+    } finally {
+      setAddingWord(false);
     }
   };
 
   const handleRemoveWord = async (wordId) => {
+    if (!user) {
+      toast.error('Login required');
+      setErrorText('Login required');
+      return;
+    }
+
     try {
+      setRemovingWordId(wordId);
       setErrorText('');
       await removeWordFromDeck(id, wordId);
+      toast.success('Word removed from deck');
       setDeck((prev) => ({
         ...prev,
         words: prev.words.filter((w) => w.id !== wordId)
       }));
     } catch (err) {
       console.error('Error removing word from deck:', err);
+      if (err.status === 401) {
+        toast.error('Login required');
+      } else {
+        toast.error(err.message || 'Failed to remove word from deck');
+      }
       setErrorText(err.message || 'Failed to remove word from deck');
+    } finally {
+      setRemovingWordId(null);
     }
   };
 
@@ -108,6 +141,7 @@ const DeckDetailPage = () => {
           <select
             value={selectedWordId}
             onChange={(e) => setSelectedWordId(e.target.value)}
+            disabled={addingWord}
             className="word-select-dropdown"
             style={{
               padding: '0.5rem 1rem',
@@ -126,19 +160,19 @@ const DeckDetailPage = () => {
           </select>
           <button
             type="submit"
-            disabled={!selectedWordId}
+            disabled={!selectedWordId || addingWord}
             className="add-word-btn"
             style={{
               padding: '0.5rem 1rem',
               fontSize: '1rem',
-              backgroundColor: selectedWordId ? '#2ecc71' : '#95a5a6',
+              backgroundColor: (selectedWordId && !addingWord) ? '#2ecc71' : '#95a5a6',
               color: '#fff',
               border: 'none',
               borderRadius: '4px',
-              cursor: selectedWordId ? 'pointer' : 'not-allowed'
+              cursor: (selectedWordId && !addingWord) ? 'pointer' : 'not-allowed'
             }}
           >
-            Add Word
+            {addingWord ? 'Adding...' : 'Add Word'}
           </button>
         </form>
       </div>
@@ -179,18 +213,19 @@ const DeckDetailPage = () => {
                   <td style={{ padding: '0.75rem 1rem' }}>
                     <button
                       onClick={() => handleRemoveWord(word.id)}
+                      disabled={removingWordId === word.id}
                       className="remove-word-btn"
                       style={{
                         padding: '0.3rem 0.6rem',
-                        backgroundColor: '#e74c3c',
+                        backgroundColor: removingWordId === word.id ? '#f5b7b1' : '#e74c3c',
                         color: '#fff',
                         border: 'none',
                         borderRadius: '4px',
-                        cursor: 'pointer',
+                        cursor: removingWordId === word.id ? 'not-allowed' : 'pointer',
                         fontSize: '0.85rem'
                       }}
                     >
-                      Remove
+                      {removingWordId === word.id ? 'Removing...' : 'Remove'}
                     </button>
                   </td>
                 </tr>

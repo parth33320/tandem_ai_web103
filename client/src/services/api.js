@@ -127,6 +127,33 @@ export const removeWordFromDeck = async (deckId, wordId) => {
   return response.json();
 };
 
+// Missed Words API
+export const getMissedWords = async () => {
+  const response = await fetch(`${API_BASE}/missed-words`);
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const err = new Error(errorData.error || `Failed to fetch missed words`);
+    err.status = response.status;
+    throw err;
+  }
+  return response.json();
+};
+
+export const addMissedWord = async (wordId) => {
+  const response = await fetch(`${API_BASE}/missed-words`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ word_id: wordId }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const err = new Error(data.error || 'Failed to record missed word');
+    err.status = response.status;
+    throw err;
+  }
+  return data;
+};
+
 // Auth API
 export const getCurrentUser = async () => {
   const response = await fetch(`${API_BASE}/me`);
@@ -199,6 +226,8 @@ export default {
   deleteDeck,
   addWordToDeck,
   removeWordFromDeck,
+  getMissedWords,
+  addMissedWord,
   getCurrentUser,
   mockLogin,
   saveScore,
