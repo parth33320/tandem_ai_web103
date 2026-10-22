@@ -1,7 +1,16 @@
 // Presenter Component
 import React from 'react';
 
-const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft, shuffleOrders }) => {
+const QuestionCard = ({
+  wordData,
+  onOptionSelect,
+  selectedOption,
+  timeLeft,
+  shuffleOrders,
+  hiddenChoiceIndexes = [],
+  hintText = null,
+  expertWeights = null
+}) => {
   if (!wordData) return null;
 
   const { characters, options, correct_answer, chinese_reading, japanese_reading } = wordData;
@@ -44,7 +53,9 @@ const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft, shuf
       <div className="options-grid choice-buttons" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         {options.map((option, idx) => {
           const isCorrectOption = option === correct_answer;
-          let btnClass = 'option-button choice-btn';
+          const isHidden = hiddenChoiceIndexes && hiddenChoiceIndexes.includes(idx);
+
+          let btnClass = 'option-button choice-btn' + (isHidden ? ' hidden' : '');
           let style = {
             padding: '1rem',
             fontSize: '1rem',
@@ -53,7 +64,8 @@ const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft, shuf
             cursor: 'pointer',
             backgroundColor: '#f8f9fa',
             transition: 'all 0.2s',
-            order: shuffleOrders && shuffleOrders[idx] !== undefined ? shuffleOrders[idx] : idx
+            order: shuffleOrders && shuffleOrders[idx] !== undefined ? shuffleOrders[idx] : idx,
+            ...(isHidden ? { display: 'none' } : {})
           };
 
           if (selectedOption) {
@@ -83,13 +95,63 @@ const QuestionCard = ({ wordData, onOptionSelect, selectedOption, timeLeft, shuf
               data-correct={isCorrectOption ? "true" : "false"}
               style={style}
               onClick={() => !selectedOption && onOptionSelect(option)}
-              disabled={!!selectedOption}
+              disabled={!!selectedOption || isHidden}
             >
               <span className="choice-text">{option}</span>
             </button>
           );
         })}
       </div>
+
+      {hintText && (
+        <div className="hint-bubble-overlay hint-bubble" style={{
+          marginTop: '1.5rem',
+          padding: '1rem',
+          backgroundColor: '#e8f4f8',
+          border: '1px solid #3498db',
+          borderRadius: '8px',
+          color: '#2c3e50',
+          fontSize: '0.95rem',
+          lineHeight: '1.4',
+          textAlign: 'center'
+        }}>
+          💡 <strong>Hint Note:</strong> {hintText}
+        </div>
+      )}
+
+      {expertWeights && (
+        <div className="expert-chart-overlay" style={{
+          marginTop: '1.5rem',
+          padding: '1rem',
+          backgroundColor: '#f9fbf9',
+          border: '1px solid #2ecc71',
+          borderRadius: '8px',
+          textAlign: 'left'
+        }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', textAlign: 'center', color: '#27ae60', fontSize: '1rem' }}>
+            📊 Expert Advice Predictions
+          </h4>
+          {expertWeights.map((exp, i) => (
+            <div key={i} className="expert-row" style={{ marginBottom: '0.6rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                <span>Expert {exp.label}: {exp.answer}</span>
+                <span>({exp.percentage}%)</span>
+              </div>
+              <div className="expert-bar-bg" style={{ backgroundColor: '#e0e0e0', borderRadius: '4px', height: '10px', overflow: 'hidden', marginTop: '2px' }}>
+                <div
+                  className="expert-bar"
+                  style={{
+                    width: `${exp.percentage}%`,
+                    backgroundColor: i === 0 ? '#2ecc71' : '#f39c12',
+                    height: '100%',
+                    transition: 'width 0.3s ease-in-out'
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {selectedOption && (
         <div className="answer-feedback" style={{ marginTop: '1.5rem', fontWeight: 'bold' }}>

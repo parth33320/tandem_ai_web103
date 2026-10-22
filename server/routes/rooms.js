@@ -1,4 +1,4 @@
-// server/routes/rooms.js - Multiplayer Rooms and Weapons API
+// server/routes/rooms.js - Multiplayer Rooms, Weapons, and Lifelines API
 import express from 'express';
 import pool from '../config/db.js';
 import requireAuth from '../middleware/requireAuth.js';
@@ -177,6 +177,39 @@ router.post('/:roomId/weapons/use', requireAuth, async (req, res, next) => {
     );
 
     res.status(201).json(event);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/rooms/:roomId/lifelines/use — Use passive lifeline item
+router.post('/:roomId/lifelines/use', requireAuth, async (req, res, next) => {
+  try {
+    const { roomId } = req.params;
+    const { lifelineType } = req.body;
+    const userId = req.user.id;
+
+    if (!lifelineType) {
+      return res.status(400).json({ error: 'lifelineType is required' });
+    }
+
+    // Check inventory of user
+    const invRes = await pool.query(
+      `SELECT passive_slot FROM inventory WHERE room_id = $1 AND user_id = $2`,
+      [roomId, userId]
+    );
+
+    if (invRes.rows.length === 0 || invRes.rows[0].passive_slot !== lifelineType) {
+      return res.status(400).json({ error: 'No active lifeline or slot mismatch' });
+    }
+
+    // Clear passive_slot from user's inventory
+    await pool.query(
+      `UPDATE inventory SET passive_slot = NULL WHERE room_id = $1 AND user_id = $2`,
+      [roomId, userId]
+    );
+
+    res.status(200).json({ success: true, lifelineType });
   } catch (err) {
     next(err);
   }

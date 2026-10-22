@@ -10,6 +10,12 @@ export const WEAPONS = [
   'Lightning_Strike'
 ];
 
+export const LIFELINES = [
+  'Fifty_Fifty',
+  'Hint_Provider',
+  'Expert_Advice'
+];
+
 /**
  * Calculates drop probability based on player rank and total players.
  * Rank 1 (leader): 5% (0.05)
@@ -60,23 +66,37 @@ export const itemDrop = async (roomId) => {
       const player = players[i];
       const rank = i + 1;
       const prob = getDropProbability(rank, totalPlayers);
-      const roll = Math.random();
-      const dropped = roll < prob;
+
+      const weaponRoll = Math.random();
+      const weaponDropped = weaponRoll < prob;
+
+      const lifelineRoll = Math.random();
+      const lifelineDropped = lifelineRoll < prob;
 
       let weapon = null;
-      if (dropped) {
+      if (weaponDropped) {
         let availableWeapons = WEAPONS;
         if (rank === 1) {
           availableWeapons = WEAPONS.filter(w => w !== 'Shield_Block');
         }
         weapon = availableWeapons[Math.floor(Math.random() * availableWeapons.length)];
+      }
 
+      let lifeline = null;
+      if (lifelineDropped) {
+        lifeline = LIFELINES[Math.floor(Math.random() * LIFELINES.length)];
+      }
+
+      if (weapon || lifeline) {
         await client.query(
-          `INSERT INTO inventory (room_id, user_id, offensive_slot, updated_at)
-           VALUES ($1, $2, $3, NOW())
+          `INSERT INTO inventory (room_id, user_id, offensive_slot, passive_slot, updated_at)
+           VALUES ($1, $2, $3, $4, NOW())
            ON CONFLICT (room_id, user_id)
-           DO UPDATE SET offensive_slot = EXCLUDED.offensive_slot, updated_at = NOW()`,
-          [roomId, player.user_id, weapon]
+           DO UPDATE SET
+             offensive_slot = CASE WHEN $3 IS NOT NULL THEN $3 ELSE inventory.offensive_slot END,
+             passive_slot   = CASE WHEN $4 IS NOT NULL THEN $4 ELSE inventory.passive_slot END,
+             updated_at     = NOW()`,
+          [roomId, player.user_id, weapon, lifeline]
         );
       }
 
@@ -84,8 +104,10 @@ export const itemDrop = async (roomId) => {
         userId: player.user_id,
         rank,
         probability: prob,
-        dropped,
-        weapon
+        weaponDropped,
+        weapon,
+        lifelineDropped,
+        lifeline
       });
     }
 
