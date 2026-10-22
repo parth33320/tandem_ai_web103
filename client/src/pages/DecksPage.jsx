@@ -37,9 +37,9 @@ const DecksPage = ({ user }) => {
           const allWords = await getAllWords();
           if (starterDeck && starterDeck.id && Array.isArray(allWords)) {
             const seedWords = allWords.slice(0, 5);
-            for (let i = 0; i < seedWords.length; i++) {
-              await addWordToDeck(starterDeck.id, seedWords[i].id, i);
-            }
+            await Promise.all(
+              seedWords.map((word, i) => addWordToDeck(starterDeck.id, word.id, i))
+            );
           }
         } catch (seedErr) {
           console.error('Auto-seed starter deck error:', seedErr);

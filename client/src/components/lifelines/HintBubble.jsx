@@ -1,5 +1,6 @@
 // client/src/components/lifelines/HintBubble.jsx - Database Hint Provider Button
 import React, { useState } from 'react';
+import { play as playSound } from '../../utils/sounds';
 
 const HintBubble = ({ roomId, wordData, direction = 'cn_to_jp', onActivate, disabled, used }) => {
   const [loading, setLoading] = useState(false);
@@ -27,6 +28,7 @@ const HintBubble = ({ roomId, wordData, direction = 'cn_to_jp', onActivate, disa
       const rawHint = isCnToJp ? wordData.jp_meaning_note : wordData.zh_meaning_note;
       const hintText = (rawHint && rawHint.trim()) ? rawHint.trim() : 'No hint available for this word.';
 
+      playSound('lifeline');
       onActivate(hintText);
     } catch (err) {
       console.error('Error executing Hint_Provider lifeline:', err);

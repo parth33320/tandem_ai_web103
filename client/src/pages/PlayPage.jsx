@@ -1,7 +1,7 @@
 // client/src/pages/PlayPage.jsx - Play Page with Item Box, Lifelines & AI Opponent integration
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getRandomWord } from '../services/api';
+import { getRandomWord, addMissedWord } from '../services/api';
 import QuestionCard from '../components/QuestionCard';
 import RevealCard from '../components/RevealCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -49,6 +49,16 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
     stateRef.current = { wordData, roundWords, score, selectedOption, showRevealModal };
   });
 
+  const recordMissedWordIfWrong = useCallback(async (word) => {
+    if (user && word && word.id) {
+      try {
+        await addMissedWord(word.id);
+      } catch (err) {
+        console.error('Failed to post missed word:', err);
+      }
+    }
+  }, [user]);
+
   const handleTimeout = useCallback(() => {
     const { wordData: currentWord, roundWords: currentRound, showRevealModal: isModalOpen } = stateRef.current;
     if (isModalOpen || !currentWord) return;
@@ -57,7 +67,8 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
     setSelectedOption(null);
     setRoundWords(prev => [...prev, currentWord]);
     setShowRevealModal(true);
-  }, []);
+    recordMissedWordIfWrong(currentWord);
+  }, [recordMissedWordIfWrong]);
 
   const { timeLeft, setTimeLeft, startTimer, stopTimer } = useTimer(10, handleTimeout);
 
@@ -108,6 +119,8 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
     const isCorrect = option === wordData.correct_answer;
     if (isCorrect) {
       setScore(prev => prev + 1);
+    } else {
+      recordMissedWordIfWrong(wordData);
     }
 
     setRoundWords(prev => [...prev, wordData]);
@@ -191,6 +204,7 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
             <div style={{ color: '#dc3545', margin: '1rem 0' }}>
               <p>Error: {error}</p>
               <button
+                type="button"
                 onClick={loadRandomWord}
                 style={{
                   padding: '0.5rem 1rem',
@@ -210,6 +224,7 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
             <>
               <QuestionCard
                 wordData={wordData}
+                direction={direction}
                 onOptionSelect={handleOptionSelect}
                 selectedOption={selectedOption}
                 timeLeft={timeLeft}
@@ -224,7 +239,6 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
                 isOpen={showRevealModal}
                 onNext={handleNextQuestion}
                 isWrong={isWrong}
-                user={user}
               />
             </>
           )}

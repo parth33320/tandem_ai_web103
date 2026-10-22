@@ -164,6 +164,21 @@ export const getCurrentUser = async () => {
   return data.user || null;
 };
 
+export const updateAvatar = async ({ avatar_color, avatar_bg }) => {
+  const response = await fetch(`${API_BASE}/me/avatar`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ avatar_color, avatar_bg }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const err = new Error(data.error || 'Failed to update avatar');
+    err.status = response.status;
+    throw err;
+  }
+  return data;
+};
+
 export const mockLogin = async (userData = {}) => {
   const response = await fetch(`${API_BASE}/auth/mock-login`, {
     method: 'POST',
@@ -229,6 +244,7 @@ export default {
   getMissedWords,
   addMissedWord,
   getCurrentUser,
+  updateAvatar,
   mockLogin,
   saveScore,
   getLeaderboard,

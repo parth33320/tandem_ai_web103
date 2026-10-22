@@ -9,6 +9,7 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import DecksPage from './pages/DecksPage';
 import DeckDetailPage from './pages/DeckDetailPage';
 import ProfilePage from './pages/ProfilePage';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   const { user, loading } = useAuth();
@@ -26,6 +27,7 @@ function App() {
           <Route path="/decks" element={<DecksPage user={user} />} />
           <Route path="/decks/:id" element={<DeckDetailPage user={user} />} />
           <Route path="/profile" element={<ProfilePage user={user} />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
     </div>

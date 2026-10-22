@@ -1,5 +1,6 @@
 // client/src/components/lifelines/ExpertChart.jsx - Expert Advice Simulator Button
 import React, { useState } from 'react';
+import { play as playSound } from '../../utils/sounds';
 
 const ExpertChart = ({ roomId, wordData, onActivate, disabled, used }) => {
   const [loading, setLoading] = useState(false);
@@ -55,6 +56,7 @@ const ExpertChart = ({ roomId, wordData, onActivate, disabled, used }) => {
         { label: 'C', answer: options[sortedIndexes[2]], percentage: weights[sortedIndexes[2]] }
       ];
 
+      playSound('lifeline');
       onActivate(expertResults);
     } catch (err) {
       console.error('Error executing Expert_Advice lifeline:', err);
