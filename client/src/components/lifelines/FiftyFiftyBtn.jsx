@@ -1,5 +1,6 @@
 // client/src/components/lifelines/FiftyFiftyBtn.jsx - 50:50 Choice Eliminator Button
 import React, { useState } from 'react';
+import { play as playSound } from '../../utils/sounds';
 
 const FiftyFiftyBtn = ({ roomId, wordData, onActivate, disabled, used }) => {
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,7 @@ const FiftyFiftyBtn = ({ roomId, wordData, onActivate, disabled, used }) => {
       const shuffledWrong = wrongIndexes.sort(() => Math.random() - 0.5);
       const hiddenIndexes = shuffledWrong.slice(0, 2);
 
+      playSound('lifeline');
       onActivate(hiddenIndexes);
     } catch (err) {
       console.error('Error executing 50:50 lifeline:', err);

@@ -37,7 +37,9 @@ export const resetDatabase = async () => {
         user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
         total_rounds_played INTEGER DEFAULT 0,
         best_score_cn_jp INTEGER DEFAULT 0,
-        best_score_jp_cn INTEGER DEFAULT 0
+        best_score_jp_cn INTEGER DEFAULT 0,
+        avatar_color VARCHAR(7) DEFAULT '#6c63ff',
+        avatar_bg VARCHAR(7) DEFAULT '#21253a'
       );
 
       CREATE TABLE words (

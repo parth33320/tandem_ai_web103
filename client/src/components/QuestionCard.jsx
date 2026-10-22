@@ -1,8 +1,11 @@
-// Presenter Component
-import React from 'react';
+// Presenter Component - QuestionCard
+import React, { useEffect, useRef } from 'react';
+import { play as playSound } from '../utils/sounds';
+import { speak } from '../utils/voiceHost';
 
 const QuestionCard = ({
   wordData,
+  direction = 'cn_to_jp',
   onOptionSelect,
   selectedOption,
   timeLeft,
@@ -11,9 +14,38 @@ const QuestionCard = ({
   hintText = null,
   expertWeights = null
 }) => {
+  const spokenWordRef = useRef(null);
+  const prevTimeLeftRef = useRef(timeLeft);
+
+  useEffect(() => {
+    if (wordData && wordData.characters && spokenWordRef.current !== wordData.characters) {
+      spokenWordRef.current = wordData.characters;
+      const voiceLang = direction === 'cn_jp' || direction === 'cn_to_jp' ? 'zh-CN' : 'ja-JP';
+      speak(wordData.characters, voiceLang);
+    }
+  }, [wordData, direction]);
+
+  useEffect(() => {
+    if (timeLeft === 3 && prevTimeLeftRef.current !== 3) {
+      playSound('timer');
+    }
+    prevTimeLeftRef.current = timeLeft;
+  }, [timeLeft]);
+
   if (!wordData) return null;
 
   const { characters, options, correct_answer, chinese_reading, japanese_reading } = wordData;
+
+  const handleOptionClick = (option) => {
+    if (selectedOption) return;
+    const isCorrect = option === correct_answer;
+    if (isCorrect) {
+      playSound('correct');
+    } else {
+      playSound('wrong');
+    }
+    onOptionSelect(option);
+  };
 
   return (
     <div className="question-card" style={{
@@ -91,10 +123,11 @@ const QuestionCard = ({
           return (
             <button
               key={idx}
+              type="button"
               className={btnClass}
               data-correct={isCorrectOption ? "true" : "false"}
               style={style}
-              onClick={() => !selectedOption && onOptionSelect(option)}
+              onClick={() => handleOptionClick(option)}
               disabled={!!selectedOption || isHidden}
             >
               <span className="choice-text">{option}</span>

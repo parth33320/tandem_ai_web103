@@ -1,6 +1,7 @@
 // client/src/components/ItemBox.jsx - Item Box Component for Mario Kart-style Weapon Items
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { play as playSound } from '../utils/sounds';
 
 export const WEAPON_EMOJIS = {
   Ink_Splat: '🦑',
@@ -117,6 +118,7 @@ const ItemBox = ({ roomId, user, roomPlayers = [], onEffectChange, onLightningSt
         const err = await res.json().catch(() => ({}));
         toast.error(err.error || 'Failed to use weapon');
       } else {
+        playSound('weapon');
         toast.success(`Used ${offensiveSlot}!`);
         setOffensiveSlot(null);
         setShowTargetSelect(false);
