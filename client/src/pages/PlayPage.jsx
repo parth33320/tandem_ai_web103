@@ -1,4 +1,4 @@
-// client/src/pages/PlayPage.jsx - Play Page with Item Box & AI Opponent integration
+// client/src/pages/PlayPage.jsx - Play Page with Item Box, Lifelines & AI Opponent integration
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getRandomWord } from '../services/api';
@@ -6,6 +6,7 @@ import QuestionCard from '../components/QuestionCard';
 import RevealCard from '../components/RevealCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ItemBox from '../components/ItemBox';
+import LifelinePanel from '../components/LifelinePanel';
 import AIOpponentCard from '../components/AIOpponentCard';
 import useAI from '../hooks/useAI';
 import { useTimer } from '../hooks/useTimer';
@@ -30,6 +31,13 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
   // Active weapon effects state
   const [activeEffects, setActiveEffects] = useState([]);
   const [shuffleOrders, setShuffleOrders] = useState([0, 1, 2, 3]);
+
+  // Passive Lifelines state
+  const [hiddenChoiceIndexes, setHiddenChoiceIndexes] = useState([]);
+  const [hintText, setHintText] = useState(null);
+  const [expertWeights, setExpertWeights] = useState(null);
+  const [usedLifelines, setUsedLifelines] = useState({ Fifty_Fifty: false, Hint_Provider: false, Expert_Advice: false });
+  const [singlePlayerLifelines, setSinglePlayerLifelines] = useState({ Fifty_Fifty: true, Hint_Provider: true, Expert_Advice: true });
 
   // AI opponent hook
   const currentQuestionIndex = roundWords.length;
@@ -58,6 +66,13 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
     setError(null);
     setSelectedOption(null);
     setShowRevealModal(false);
+
+    // Reset lifeline visual states on each question
+    setHiddenChoiceIndexes([]);
+    setHintText(null);
+    setExpertWeights(null);
+    setUsedLifelines({ Fifty_Fifty: false, Hint_Provider: false, Expert_Advice: false });
+
     try {
       if (roomId) {
         // Trigger question-start for item drops
@@ -122,6 +137,31 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
     setTimeLeft(prev => Math.max(0, prev - reduction));
   };
 
+  // Lifeline handlers
+  const handleFiftyFifty = (hiddenIndexes) => {
+    setHiddenChoiceIndexes(hiddenIndexes);
+    setUsedLifelines(prev => ({ ...prev, Fifty_Fifty: true }));
+    if (!roomId) {
+      setSinglePlayerLifelines(prev => ({ ...prev, Fifty_Fifty: false }));
+    }
+  };
+
+  const handleHint = (hint) => {
+    setHintText(hint);
+    setUsedLifelines(prev => ({ ...prev, Hint_Provider: true }));
+    if (!roomId) {
+      setSinglePlayerLifelines(prev => ({ ...prev, Hint_Provider: false }));
+    }
+  };
+
+  const handleExpert = (weights) => {
+    setExpertWeights(weights);
+    setUsedLifelines(prev => ({ ...prev, Expert_Advice: true }));
+    if (!roomId) {
+      setSinglePlayerLifelines(prev => ({ ...prev, Expert_Advice: false }));
+    }
+  };
+
   const isWrong = showRevealModal && wordData && (selectedOption === null || selectedOption !== wordData.correct_answer);
 
   // Construct class names for effects
@@ -135,16 +175,16 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
 
   return (
     <div className={containerClasses} style={{ padding: '2rem', textAlign: 'center' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '800px', margin: '0 auto 1rem auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '900px', margin: '0 auto 1rem auto' }}>
         <h2 style={{ margin: 0 }}>Tandem Play Page</h2>
         <div className="question-progress" style={{ fontSize: '1rem', fontWeight: 'bold', color: '#555' }}>
           Question {Math.min(roundWords.length + (showRevealModal ? 0 : 1), TOTAL_QUESTIONS)} / {TOTAL_QUESTIONS}
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', maxWidth: '800px', margin: '0 auto', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '1.5rem', maxWidth: '900px', margin: '0 auto', flexWrap: 'wrap' }}>
         {/* Main Quiz Area */}
-        <div style={{ flex: '1 1 450px' }}>
+        <div style={{ flex: '1 1 400px' }}>
           {loading && <LoadingSpinner />}
 
           {error && (
@@ -174,6 +214,9 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
                 selectedOption={selectedOption}
                 timeLeft={timeLeft}
                 shuffleOrders={activeEffects.includes('Button_Shuffle') ? shuffleOrders : null}
+                hiddenChoiceIndexes={hiddenChoiceIndexes}
+                hintText={hintText}
+                expertWeights={expertWeights}
               />
 
               <RevealCard
@@ -187,8 +230,20 @@ const PlayPage = ({ user, roomId: propRoomId }) => {
           )}
         </div>
 
-        {/* Sidebar with ItemBox & Optional AI Card */}
-        <div style={{ flex: '0 0 220px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Sidebar with ItemBox, LifelinePanel & Optional AI Card */}
+        <div style={{ flex: '0 0 240px', display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
+          <LifelinePanel
+            roomId={roomId}
+            user={user}
+            wordData={wordData}
+            direction={direction}
+            onFiftyFifty={handleFiftyFifty}
+            onHint={handleHint}
+            onExpert={handleExpert}
+            usedLifelines={usedLifelines}
+            singlePlayerLifelines={singlePlayerLifelines}
+          />
+
           {roomId && (
             <ItemBox
               roomId={roomId}

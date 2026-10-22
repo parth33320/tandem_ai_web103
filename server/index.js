@@ -4,6 +4,8 @@ import cors from 'cors';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 import pool from './config/db.js';
 import passport from './config/passport.js';
 
@@ -48,6 +50,13 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Static file serving from client/dist or dist
+const distPath = fs.existsSync(path.join(process.cwd(), 'client', 'dist'))
+  ? path.join(process.cwd(), 'client', 'dist')
+  : path.join(process.cwd(), 'dist');
+
+app.use(express.static(distPath));
+
 // Routes
 app.use('/api/words', wordsRouter);
 app.use('/api/decks', decksRouter);
@@ -59,7 +68,19 @@ app.use('/', authRouter);
 app.use('/api', resetRouter);
 
 // Root route healthcheck
-app.get('/', (req, res) => {
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Tandem API Server Running' });
+});
+
+// SPA fallback for non-API routes
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
+    return next();
+  }
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
   res.json({ status: 'ok', message: 'Tandem API Server Running' });
 });
 
